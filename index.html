@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>과일 이름 맞추기 게임</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+            margin: 20px;
+        }
+
+        #game-container {
+            width: 800px;
+            height: 600px;
+            border: 4px solid #32CD32;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(
+                rgba(0, 0, 0, 0.9),
+                rgba(0, 20, 0, 0.9)
+            );
+            box-shadow: 0 0 20px #32CD32;
+        }
+
+        .falling-item {
+            position: absolute;
+            text-align: center;
+            width: 100px;
+        }
+
+        .falling-item .emoji {
+            font-size: 50px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        #input-box {
+            width: 780px;
+            padding: 15px;
+            margin-top: 20px;
+            background: #000;
+            border: 2px solid #32CD32;
+            color: #32CD32;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+        }
+
+        #score-container {
+            width: 800px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #000;
+            border: 2px solid #32CD32;
+        }
+
+        .correct {
+            animation: correct 0.5s;
+        }
+
+        @keyframes correct {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        #game-title {
+            font-size: 40px;
+            color: #32CD32;
+            text-shadow: 0 0 10px #32CD32;
+            margin-bottom: 20px;
+        }
+
+        #hint-box {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border: 2px solid #32CD32;
+            color: #32CD32;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-title">FRUIT RAIN</div>
+    <div id="score-container">
+        <div id="score">SCORE: 0</div>
+        <div id="life">LIFE: ♥♥♥</div>
+    </div>
+    <div id="game-container"></div>
+    <input type="text" id="input-box" placeholder="TYPE FRUIT NAME IN ENGLISH...">
+    <div id="hint-box">
+        Available Fruits:<br>
+        🍎 - APPLE<br>
+        🍌 - BANANA<br>
+        🍊 - ORANGE<br>
+        🍇 - GRAPE<br>
+        🍓 - STRAWBERRY<br>
+        🍐 - PEAR<br>
+        🍑 - PEACH
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const inputBox = document.getElementById('input-box');
+        const scoreDisplay = document.getElementById('score');
+        const lifeDisplay = document.getElementById('life');
+        let score = 0;
+        let lives = 3;
+
+        const fruits = [
+            { emoji: '🍎', word: 'APPLE' },
+            { emoji: '🍌', word: 'BANANA' },
+            { emoji: '🍊', word: 'ORANGE' },
+            { emoji: '🍇', word: 'GRAPE' },
+            { emoji: '🍓', word: 'STRAWBERRY' },
+            { emoji: '🍐', word: 'PEAR' },
+            { emoji: '🍑', word: 'PEACH' }
+        ];
+
+        function createFruit() {
+            const fruit = fruits[Math.floor(Math.random() * fruits.length)];
+            const fruitElement = document.createElement('div');
+            fruitElement.className = 'falling-item';
+            
+            const emojiSpan = document.createElement('div');
+            emojiSpan.className = 'emoji';
+            emojiSpan.textContent = fruit.emoji;
+            fruitElement.appendChild(emojiSpan);
+            
+            fruitElement.dataset.word = fruit.word;
+            fruitElement.style.left = Math.random() * (gameContainer.offsetWidth - 100) + 'px';
+            fruitElement.style.top = '0px';
+            gameContainer.appendChild(fruitElement);
+
+            return fruitElement;
+        }
+
+        function moveFruit(fruitElement) {
+            let top = 0;
+            const fallInterval = setInterval(() => {
+                top += 1;
+                fruitElement.style.top = top + 'px';
+
+                if (top > gameContainer.offsetHeight) {
+                    clearInterval(fallInterval);
+                    gameContainer.removeChild(fruitElement);
+                    decreaseLife();
+                }
+            }, 50);
+
+            return fallInterval;
+        }
+
+        function decreaseLife() {
+            lives--;
+            lifeDisplay.textContent = `LIFE: ${'♥'.repeat(lives)}`;
+            if (lives <= 0) {
+                alert('GAME OVER!\nFINAL SCORE: ' + score);
+                location.reload();
+            }
+        }
+
+        inputBox.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                const inputWord = inputBox.value.toUpperCase();
+                const items = document.getElementsByClassName('falling-item');
+                
+                for (let item of items) {
+                    if (item.dataset.word === inputWord) {
+                        item.classList.add('correct');
+                        setTimeout(() => {
+                            gameContainer.removeChild(item);
+                        }, 500);
+                        score += 10;
+                        scoreDisplay.textContent = `SCORE: ${score}`;
+                        break;
+                    }
+                }
+                inputBox.value = '';
+            }
+        });
+
+        // 게임 시작
+        setInterval(() => {
+            const fruitElement = createFruit();
+            moveFruit(fruitElement);
+        }, 2000);
+    </script>
+</body>
+</html>
